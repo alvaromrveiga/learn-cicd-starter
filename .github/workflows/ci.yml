@@ -4,19 +4,59 @@ on:
   pull_request:
     branches: [main]
 
+env: 
+  GO_VERSION: "1.25.1"
+
 jobs:
+  style:
+    name: Style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Format go files
+        run: test -z $(go fmt ./...)
+
+  lint: 
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: golanci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.6
+
   tests:
     name: Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with: 
-          go-version: "1.25.1"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Run tests
         run: go test ./... -cover
+
+      - name: Set up gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run gosec
+        run: gosec ./...
