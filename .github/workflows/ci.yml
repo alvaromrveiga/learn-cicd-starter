@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main]
 
+env: 
+  GO_VERSION: "1.25.1"
+
 jobs:
   style:
     name: Style
@@ -11,21 +14,30 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: "1.25.1"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Format go files
         run: test -z $(go fmt ./...)
 
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+  lint: 
+    name: Lint
+    runs-on: ubuntu-latest
 
-      - name: Lint files
-        run: staticcheck ./...
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: golanci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.6
 
   tests:
     name: Tests
@@ -33,12 +45,12 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with: 
-          go-version: "1.25.1"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Run tests
         run: go test ./... -cover
