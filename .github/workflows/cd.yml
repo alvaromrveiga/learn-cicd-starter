@@ -17,3 +17,14 @@ jobs:
       
       - name: Build app
         run: ./scripts/buildprod.sh
+
+      - name: Authenticate in Google Cloud Platform
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Setup GCP SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Push image to GCP registry
+        run: gcloud builds submit --tag ${{ secrets.GCP_REPOSITORY }}:latest .
